@@ -7,22 +7,84 @@ using UnityEngine.UI;
 
 public class Unit : MonoBehaviour
 {
+
+    Animator anim;
+    int idleHash;
+    int walkHash;
+    int attackHash;
+    int defendHash;
+    int powerHash;
+    int deadHash;
+    int runStateHash = Animator.StringToHash("Base Layer.Run");
+
+
+
     // Start is called before the first frame update
     private bool selected=false;
     private bool move = false;
+    private bool colliding = false;
+    private bool touchedMarket = false;
     //public GameObject unit; //Keep in mind that we drag-drop the tile in inspector
     //attributes
-    public int health;
-    public int defense;
-    public int range;
-    public int speed;
-    public int attack;
-    public int title;
+    private int health;
+    private int defense;
+    private int range;
+    private int speed;
+    private int attack;
+    private int cash;
+    private string title;
+    private Rigidbody2D rb2D; //For selecting the attached rigid body component
 
+
+    //int jumpHash = Animator.StringToHash("Jump");
+    //int runStateHash = Animator.StringToHash("Base Layer.Run");
+
+    //player stats
+    public int Health
+    {
+        get { return health; }
+        set { health = value; }
+    }
+    public int Defense
+    {
+        get { return defense; }
+        set { defense = value; }
+    }
+    public int Range
+    {
+        get { return range; }
+        set { range = value; }
+    }
+    public int Speed
+    {
+        get { return speed; }
+        set { speed = value; }
+    }
+    public int Attack
+    {
+        get { return attack; }
+        set { attack = value; }
+    }
+    public int Cash
+    {
+        get { return cash; }
+        set { cash = value; }
+    }
+    public string Title
+    {
+        get { return title; }
+        set { title = value; }
+    }
     public bool Selected
     {
         get { return selected; }
         set { selected = value; }
+    }
+
+    public bool Colliding
+    {
+        get { return colliding; }
+        set { colliding = value; }
     }
 
     public bool Move
@@ -30,58 +92,176 @@ public class Unit : MonoBehaviour
         get { return move; }
         set { move = value; }
     }
+    public bool TouchedMarket
+    {
+        get { return touchedMarket; }
+        set { touchedMarket = value; }
+    }
 
     void Start()
     {
-        
+        anim = GetComponent<Animator>();
+        anim.SetTrigger(idleHash);
+
+        rb2D = GetComponent<Rigidbody2D>();
+        colliding = false;
+        if (rb2D.name == "archer(Clone)")
+        {
+            print("archer detected");
+            health= 2;
+            defense = 5;
+            range = 100;
+            speed = 60;
+            attack = 4;
+            title = "";
+            walkHash = Animator.StringToHash("walk_archer");
+            attackHash = Animator.StringToHash("attack_archer");
+            idleHash = Animator.StringToHash("idle_archer");
+            defendHash = Animator.StringToHash("defend_archer");
+            powerHash = Animator.StringToHash("power_archer");
+            deadHash = Animator.StringToHash("dead_archer");
+        }
+        else if (rb2D.name == "Cleric(Clone)")
+        {
+            print("cleric detected");
+            health = 2;
+            defense = 2;
+            range = 102;
+            speed = 60;
+            attack = 12;
+            title = "";
+            walkHash = Animator.StringToHash("walk_cleric");
+            attackHash = Animator.StringToHash("attack_cleric");
+            idleHash = Animator.StringToHash("idle_cleric");
+            defendHash = Animator.StringToHash("defend_cleric");
+            powerHash = Animator.StringToHash("power_cleric");
+            deadHash = Animator.StringToHash("dead_cleric");
+        }
+        else if (rb2D.name == "warrior(Clone)")
+        {
+            print("warrior detected");
+            health = 2;
+            defense = 2;
+            range = 102;
+            speed = 60;
+            attack = 12;
+            title = "";
+            walkHash = Animator.StringToHash("walk_warrior");
+            attackHash = Animator.StringToHash("attack_warrior");
+            idleHash = Animator.StringToHash("idle_warrior");
+            defendHash = Animator.StringToHash("defend_warrior");
+            powerHash = Animator.StringToHash("power_warrior");
+            deadHash = Animator.StringToHash("dead_warrior");
+
+        }
+        else if (rb2D.name == "Calvary(Clone)")
+        {
+            print("Calvary detected");
+            health = 2;
+            defense = 2;
+            range = 102;
+            speed = 60;
+            attack = 12;
+            title = "";
+            walkHash = Animator.StringToHash("walk_calvary");
+            attackHash = Animator.StringToHash("attack_calvary");
+            idleHash = Animator.StringToHash("idle_calvary");
+            defendHash = Animator.StringToHash("defend_calvary");
+            powerHash = Animator.StringToHash("power_calvary");
+            deadHash = Animator.StringToHash("dead_calvary");
+
+        }
+        else if (rb2D.name == "Soceress(Clone)")
+        {
+            print("Soceress detected");
+            health = 2;
+            defense = 2;
+            range = 102;
+            speed = 60;
+            attack = 12;
+            title = "";
+            walkHash = Animator.StringToHash("walk_soceress");
+            attackHash = Animator.StringToHash("attack_soceress");
+            idleHash = Animator.StringToHash("idle_soceress");
+            defendHash = Animator.StringToHash("defend_soceress");
+            powerHash = Animator.StringToHash("power_soceress");
+            deadHash = Animator.StringToHash("dead_soceress");
+
+        }
+        else if (rb2D.name == "Thief(Clone)")
+        {
+            print("Thief detected");
+            health = 2;
+            defense = 2;
+            range = 102;
+            speed = 60;
+            attack = 12;
+            title = "";
+            walkHash = Animator.StringToHash("walk_thief");
+            attackHash = Animator.StringToHash("attack_thief");
+            idleHash = Animator.StringToHash("idle_thief");
+            defendHash = Animator.StringToHash("defend_thief");
+            powerHash = Animator.StringToHash("power_thief");
+            deadHash = Animator.StringToHash("dead_thief");
+
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Health <= 0)
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            print("pos" + mousePos.x+"  "+ mousePos.y);
-            if ((Mathf.Abs(mousePos.x- this.transform.position.x) < 5)&& (Mathf.Abs(mousePos.y - this.transform.position.y) < 5))
-            {
-                print("hit");
-                if (selected == false) { 
-                    selected = true;
-                    gameObject.GetComponent<Renderer>().material.color = new Color(0.2F, 0.3F, 0.4F, 0.5F);
-                }
-                else if (selected == true)
-                {
-                    gameObject.GetComponent<Renderer>().material.color = Color.white;
-                    selected = false;
-                }
-                    
-            }
-            /**
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 mousePos2D = new Vector3(mousePos.x, mousePos.y, mousePos.z);
-
-            Vector3 imp = new Vector3(0,0,-1);
-
-            RaycastHit2D hit = Physics2D.Raycast(mousePos2D, imp);
-            if (hit.collider != null)
-            {
-                print(hit.collider);
-                Debug.Log(hit.collider.gameObject.name);
-                //hit.collider.attachedRigidbody.AddForce(Vector2.up);
-            }
-        **/
+     
+       print(name+ " unit killed");
+            dead_anim();
+            //Destroy(this.gameObject);
+            //gameObject.GetComponent<Renderer>().enabled = false;
         }
-        /**
-        if (Input.GetMouseButtonDown(0))
-        {
-            if(selected==false)
-                selected = true;
-            else if (selected == true)
-                selected = false;
-        }
-    **/
+        
     }
 
-
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("obstacle")) //If collided object has tag Ground
+        {
+            colliding = true;
+        }
+        if (collision.gameObject.CompareTag("treasure"))
+        {
+            cash += 10;
+            print("cash Added");
+            Destroy(collision.gameObject);
+        }
+        if (collision.gameObject.CompareTag("market"))
+        {
+            print("hit market");
+            touchedMarket = true;
+        }
     }
+
+    public void move_anim()
+    {
+        anim.SetTrigger(walkHash);
+    }
+
+    public void attack_anim()
+    {
+        anim.SetTrigger(attackHash);
+    }
+
+    public void defend_anim()
+    {
+        anim.SetTrigger(defendHash);
+    }
+
+    public void power_anim()
+    {
+        anim.SetTrigger(powerHash);
+    }
+
+    public void dead_anim()
+    {
+        anim.SetTrigger(deadHash);
+    }
+}

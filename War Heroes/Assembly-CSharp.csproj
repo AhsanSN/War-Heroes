@@ -60,6 +60,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\animCtrl\archerCtrl.cs" />
+    <Compile Include="Assets\animCtrl\calvaryCtrl.cs" />
+    <Compile Include="Assets\animCtrl\clericCtrl.cs" />
+    <Compile Include="Assets\animCtrl\soceressCtrl.cs" />
+    <Compile Include="Assets\animCtrl\thiefCtrl.cs" />
+    <Compile Include="Assets\animCtrl\warriorCtrl.cs" />
+    <Compile Include="Assets\MoveContent.cs" />
+    <Compile Include="Assets\Scripts\dataStorage.cs" />
     <Compile Include="Assets\Scripts\MyGrid.cs" />
     <Compile Include="Assets\Scripts\myUnit.cs" />
     <Compile Include="Assets\Scripts\objectTransition.cs" />
@@ -68,6 +76,8 @@
     <Compile Include="Assets\Scripts\tile.cs" />
     <Compile Include="Assets\Scripts\Unit.cs" />
     <Compile Include="Assets\Scripts\unitSelecction.cs" />
+    <Compile Include="Assets\spriteImg.cs" />
+    <Compile Include="Assets\thiefCtrl1.cs" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />

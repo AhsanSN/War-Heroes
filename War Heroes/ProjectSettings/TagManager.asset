@@ -8,6 +8,9 @@ TagManager:
   - unitInSelectionMenu
   - tile
   - unit
+  - obstacle
+  - market
+  - treasure
   layers:
   - Default
   - TransparentFX

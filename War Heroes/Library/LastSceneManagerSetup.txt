@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/UnitSelectMenu.unity
+- path: Assets/Scenes/battleGround.unity
   isLoaded: 1
   isActive: 1

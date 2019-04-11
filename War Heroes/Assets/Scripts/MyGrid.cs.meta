@@ -6,7 +6,7 @@ MonoImporter:
   defaultReferences:
   - tile: {fileID: 5216024993102901166, guid: 2c0cba2ccca5ac540a6e4b1e60f387c4, type: 3}
   - unit: {fileID: 5779936108496670857, guid: 6b0fa0f0faa27b64ca0da590e1130a5a, type: 3}
-  executionOrder: 0
+  executionOrder: 100
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
