@@ -5,11 +5,11 @@ using UnityEngine.UI;
 
 public class MyGrid : MonoBehaviour
 {
-    
+    private unitSelecction selected;
     private int rows;
     private int cols;
     private float tileSize;
-    public GameObject tile; //Keep in mind that we drag-drop the tile in inspector
+    public GameObject[] tile; //Keep in mind that we drag-drop the tile in inspector
     List<GameObject> allTiles;
     List<GameObject> allObstacles;
     List<GameObject> Treasures;
@@ -19,9 +19,15 @@ public class MyGrid : MonoBehaviour
     public GameObject Cleric;
     public GameObject Soceress;
     public GameObject Thief;
-    public GameObject Rock;
+    public GameObject[] Rock;
     public GameObject Market;
+    public GameObject myBase;
+    public GameObject enemyBase;
     public GameObject Treasure;
+    public Sprite Circle;
+    public Texture2D cursorTexture;
+    public CursorMode cursorMode = CursorMode.Auto;
+    public Vector2 hotSpot = Vector2.zero;
     public bool move;
     public Vector3 pos;
     public List<GameObject> units = new List<GameObject>();
@@ -34,24 +40,25 @@ public class MyGrid : MonoBehaviour
     public int playerTurn = 0;
     public int playerEnemyTurn = 0;
     public bool isMyTurn = true;
-
+    public string attackStatus = "";
+    public bool newAnnouncement = false;
     //Set this in the Inspector
     private float scrollXval = 1;
     private float scrollYval = 1;
     private GameObject go;
     Unit unit;
 
-    private int nArcher = 1;
-    private int nWarrior = 1;
-    private int nCalvary = 1;
-    private int nCleric = 1;
-    private int nSoceress = 0;
-    private int nThief = 0;
-    
+    private int nArcher=0;
+    private int nWarrior=0;
+    private int nCalvary=0;
+    private int nCleric=0;
+    private int nSoceress=0;
+    private int nThief=0;
+    private List<GameObject> l= new List<GameObject>();
     private int nArcher_enemy = 1;
     private int nWarrior_enemy = 1;
-    private int nCalvary_enemy = 1;
-    private int nCleric_enemy = 1;
+    private int nCalvary_enemy = 0;
+    private int nCleric_enemy = 0;
     private int nSoceress_enemy = 0;
     private int nThief_enemy = 0;
 
@@ -64,9 +71,39 @@ public class MyGrid : MonoBehaviour
     public int randI;
     private int nTreasures;
     private int nMarkets;
+    private GameObject CircleSprite;
 
     void Start()
     {
+        GameObject some = GameObject.Find("GameObject");
+        selected = some.GetComponent<unitSelecction>();
+        foreach(var item in selected.Selecteditems)
+        {
+            if(item.name=="roster cavalry")
+            {
+                nCalvary += 1;
+            }
+            if (item.name == "roster archer")
+            {
+                nArcher += 1;
+            }
+            if (item.name == "roster sorceress")
+            {
+                nSoceress += 1;
+            }
+            if (item.name == "roster cleric")
+            {
+                nCleric += 1;
+            }
+            if (item.name == "roster warrior")
+            {
+                nWarrior += 1;
+            }
+            if (item.name == "roster thief")
+            {
+                nThief += 1;
+            }
+        }
         GameObject.Find("attack").GetComponent<Button>().enabled = false;
         GameObject.Find("attack").GetComponent<Image>().color = Color.clear;
         GameObject.Find("marketbutton").GetComponent<Button>().enabled = false;
@@ -76,37 +113,50 @@ public class MyGrid : MonoBehaviour
 
         //GameObject.Find("attack").GetComponent<Button>().enabled = true;
         //GameObject.Find("attack").GetComponent<Image>().color = Color.white;
-        rows = 115;
-        cols = 50;
-        tileSize = (tile.GetComponent<SpriteRenderer>().sprite.bounds.size.x) * tile.GetComponent<SpriteRenderer>().transform.lossyScale.x;
+
+        rows = 56;
+        cols = 25;
+        int rnd = Random.Range(0, 2);
+        tileSize = (tile[0].GetComponent<SpriteRenderer>().sprite.bounds.size.x) * tile[0].GetComponent<SpriteRenderer>().transform.lossyScale.x;
         allTiles = new List<GameObject>();
         //units = new List<GameObject>();
         CreateGrid();
         go = GameObject.Find("Grid");
         unit = go.GetComponent<Unit>();
         GameObject.Find("attack").GetComponent<Button>().onClick.AddListener(() => engageBattle());
-        //GameObject.Find("End Turn").GetComponent<Button>().onClick.AddListener(() => endBattle());
+        GameObject.Find("End Turn").GetComponent<Button>().onClick.AddListener(() => endBattle());
         scrollY.value = 1f;
         //playerTurn = 1;
 
         randI = Random.Range(0, units.Count);
         scrollX.value = 0f;
         scrollY.value = 1f;
-    }
+        CircleSprite = GameObject.Find("circle");
 
+        //show circle
+        Vector3 a = units[playerTurn].GetComponent<Unit>().transform.position;
+        a.z = 1;
+        showCircle(a, 2);
+    }
 
     void Update()
     {
-        //showGridIsStart();
+        print("Hello"+units.Count);
         if (playerTurn == units.Count)
         {
             toPosEnemy[playerEnemyTurn] = units[randI].transform.position;
             isMyTurn = false;
             playerTurn = 0;
+
+
+            Vector3 a = units[playerTurn].GetComponent<Unit>().transform.position;
+            a.z = 1;
+            showCircle(a, 2);
         }
 
-        print("isMyTurn" + isMyTurn + "unit" + playerTurn);
-        print("enemy turn " + playerEnemyTurn);
+
+        //print("isMyTurn" + isMyTurn + "unit" + playerTurn);
+        //print("enemy turn " + playerEnemyTurn);
         //enemy movement
         if (isMyTurn == false)
         {
@@ -116,6 +166,24 @@ public class MyGrid : MonoBehaviour
         moveMyUnits();
         scrollWithKeys();
 
+        checkForAllDeadUnits();
+    }
+
+    private void checkForAllDeadUnits()
+    {
+        //check all my dead units
+        var deadUnits = 0;
+        for (int i = 0; i < units.Count; i++)
+        {
+            if (units[i].GetComponent<Unit>().DeathStatus)
+            {
+                deadUnits += 1;
+            }
+        }
+        if (deadUnits == units.Count)
+        {
+            print("all unit dead");
+        }
     }
 
     private void scrollWithKeys()
@@ -177,18 +245,21 @@ public class MyGrid : MonoBehaviour
                             }
                             else
                             {
-                                units[i].transform.position = Vector3.MoveTowards(units[i].transform.position, toPos[i], units[i].GetComponent<Unit>().Speed * Time.deltaTime);
+                                units[i].transform.position = Vector3.MoveTowards(units[i].transform.position, toPos[i], units[i].GetComponent<Unit>().Speed * Time.deltaTime/5);
                             }
                         }
                         else
                         {
+                            /**
                             GameObject.Find("attack").GetComponent<Button>().enabled = false;
                             GameObject.Find("attack").GetComponent<Image>().color = Color.clear;
                             GameObject.Find("marketbutton").GetComponent<Button>().enabled = false;
                             GameObject.Find("marketbutton").GetComponent<Image>().color = Color.clear;
                             GameObject.Find("End Turn").GetComponent<Button>().enabled = false;
                             GameObject.Find("End Turn").GetComponent<Image>().color = Color.clear;
-                            units[i].transform.position = Vector3.MoveTowards(units[i].transform.position, toPos[i], units[i].GetComponent<Unit>().Speed * Time.deltaTime);
+                            **/
+                            units[i].transform.position = Vector3.MoveTowards(units[i].transform.position, toPos[i], units[i].GetComponent<Unit>().Speed * Time.deltaTime/5);
+                            
                         }
                     }
                     else
@@ -213,8 +284,26 @@ public class MyGrid : MonoBehaviour
     {
         if (isMyTurn)
         {
-            if (Input.GetMouseButtonDown(0))
+            Vector3 len;
+            Vector3 we;
+            //showGridIsStart();
+            we = Camera.main.ScreenToWorldPoint(units[playerTurn].transform.position);
+            len = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float length = distanceToEnemy(len.x, len.y, we.x, we.y);
+            if (length > units[playerTurn].GetComponent<Unit>().Speed)
             {
+                Cursor.SetCursor(cursorTexture, hotSpot, cursorMode);
+                print("out");
+            }
+            else
+            {
+                Cursor.SetCursor(null, Vector2.zero, cursorMode);
+                print("in");
+            }
+
+            if (Input.GetMouseButtonDown(0) && length<= units[playerTurn].GetComponent<Unit>().Speed)
+            {
+        
                 if (units[playerTurn].GetComponent<Unit>().Move == false)
                 {
                     units[playerTurn].GetComponent<Unit>().Move = true;
@@ -222,13 +311,21 @@ public class MyGrid : MonoBehaviour
                 }
                 toPos[playerTurn] = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 toPos[playerTurn].z = units[playerTurn].transform.position.z;
+                
                 playerTurn = playerTurn + 1;
                 if (playerTurn == units.Count)
                 {
                     print("turn changed");
 
                 }
+
+                
                 enemyUnits[globEI].GetComponent<Unit>().Move = true;
+
+                //show circle
+                Vector3 a = units[playerTurn].GetComponent<Unit>().transform.position;
+                a.z = 1;
+                showCircle(a, 2);
             }
         }
     }
@@ -306,10 +403,15 @@ public class MyGrid : MonoBehaviour
         //hit damage
         if (isMyAttack)
         {
+            pushAnnouncement("You did "+ hitScore+" damage!");
             enemyUnits[globEI].GetComponent<Unit>().Health = enemyUnits[globEI].GetComponent<Unit>().Health - hitScore;
         }
         else
         {
+            if (units[randI].GetComponent<Unit>().DeathStatus == false)
+            {
+                pushAnnouncement("You lost " + hitScore + " health!");
+            }
             units[randI].GetComponent<Unit>().Health = units[randI].GetComponent<Unit>().Health - hitScore;
         }
 
@@ -320,7 +422,21 @@ public class MyGrid : MonoBehaviour
         //select random usint to move towards
         //var randI = Random.Range(0, units.Count);
         //toPos[globEI] = units[randI].transform.position;
-        toPosEnemy[playerEnemyTurn] = units[randI].transform.position;
+
+        if (distanceToEnemy(units[randI].transform.position.x, enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.x, units[randI].transform.position.y, enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.y) < enemyUnits[playerEnemyTurn].GetComponent<Unit>().Speed)
+        {
+            toPosEnemy[playerEnemyTurn] = units[randI].transform.position;
+        }
+        else
+        {
+            var xAdd = Random.Range(-100, 100);
+            var yAdd = Random.Range(-100, 100);
+            toPosEnemy[playerEnemyTurn] = new Vector2(enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.x + xAdd, enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.y + yAdd);
+        }
+        //var slope = (enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.y - a.y)/ (enemyUnits[playerEnemyTurn].GetComponent<Unit>().transform.position.x - a.x);
+        //var y = (slope * (12211 - a.x)) + a.y;
+
+        //toPosEnemy[playerEnemyTurn] = units[randI].transform.position;
         if (enemyUnits[playerEnemyTurn].GetComponent<Unit>().Move == true)
         {
             if ((enemyUnits[playerEnemyTurn].transform.position.x != (toPosEnemy[playerEnemyTurn].x) && (enemyUnits[playerEnemyTurn].transform.position.y != (toPosEnemy[playerEnemyTurn].y))))
@@ -333,7 +449,7 @@ public class MyGrid : MonoBehaviour
                     {
                         print("moving enemy");
                         //print("dis " + dis);
-                        enemyUnits[playerEnemyTurn].transform.position = Vector3.MoveTowards(enemyUnits[playerEnemyTurn].transform.position, units[randI].transform.position, enemyUnits[playerEnemyTurn].GetComponent<Unit>().Speed * Time.deltaTime);
+                        enemyUnits[playerEnemyTurn].transform.position = Vector3.MoveTowards(enemyUnits[playerEnemyTurn].transform.position, units[randI].transform.position, enemyUnits[playerEnemyTurn].GetComponent<Unit>().Speed * Time.deltaTime/5);
                         //moveEnemyUnitAI(playerEnemyTurn, randI);
                     }
                     else
@@ -385,19 +501,20 @@ public class MyGrid : MonoBehaviour
 
     private void PlaceTile(int x, int y, Vector3 worldStart)
     {
-        GameObject newTile = Instantiate(tile, GameObject.Find("Content").transform);
+        GameObject newTile = Instantiate(tile[Random.Range(0,2)], GameObject.Find("Content").transform);
         newTile.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
         x), worldStart.y - tileSize / 2 - (tileSize * y), 0);
         allTiles.Add(newTile);
 
-        if (Random.Range(0.0f, 10.0f) < 0.000001)
+        if (Random.Range(0.0f, 10.0f) < 0.1)
         {
-            GameObject newObstacle = Instantiate(Rock, GameObject.Find("Content").transform);
+            int trend = Random.Range(0, 2);
+            GameObject newObstacle = Instantiate(Rock[trend], GameObject.Find("Content").transform);
             newObstacle.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
             x), worldStart.y - tileSize / 2 - (tileSize * y), 0);
             //allTiles.Add(newObstacle);
         }
-        if (Random.Range(0.0f, 10.0f) < 0.02 && nTreasures < 10)
+        if (Random.Range(0.0f, 10.0f) < 0.1 && nTreasures < 100)
         {
             GameObject newTreasure = Instantiate(Treasure, GameObject.Find("Content").transform);
             newTreasure.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
@@ -405,7 +522,7 @@ public class MyGrid : MonoBehaviour
             //allTiles.Add(newTreasure);
             nTreasures += 1;
         }
-        if (Random.Range(0.0f, 10.0f) < 0.02 && nMarkets < 10)
+        if (Random.Range(0.0f, 10.0f) < 0.1 && nMarkets < 100)
         {
             GameObject newMarket = Instantiate(Market, GameObject.Find("Content").transform);
             newMarket.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
@@ -452,6 +569,8 @@ public class MyGrid : MonoBehaviour
             units.Add(newunit);
         }
         else {
+         
+            newunit.GetComponent<Renderer>().material.color = new Color(0.271f, 0.8777f, 0.914f, 1F);
             enemyUnits.Add(newunit);
         }
         //print("size" + units.Count);
@@ -464,52 +583,52 @@ public class MyGrid : MonoBehaviour
         //my units
         for (int i = 0; i < nArcher; i++)
         {
-            PlaceUnit(10, 44, worldStart, "Archer");
+            PlaceUnit(6, 44-32, worldStart, "Archer");
         }
         for (int i = 0; i < nCleric; i++)
         {
-            PlaceUnit(10, 40, worldStart, "Cleric");
+            PlaceUnit(5, 40 - 32, worldStart, "Cleric");
         }
         for (int i = 0; i < nSoceress; i++)
         {
-            PlaceUnit(20, 44, worldStart, "Soceress");
+            PlaceUnit(4, 44 - 32, worldStart, "Soceress");
         }
         for (int i = 0; i < nThief; i++)
         {
-            PlaceUnit(10, 44, worldStart, "Thief");
+            PlaceUnit(3, 44 - 32, worldStart, "Thief");
         }
         for (int i = 0; i < nWarrior; i++)
         {
-            PlaceUnit(5, 44, worldStart, "Warrior");
+            PlaceUnit(2, 44 - 32, worldStart, "Warrior");
         }
         for (int i = 0; i < nCalvary; i++)
         {
-            PlaceUnit(20, 44, worldStart, "Calvary");
+            PlaceUnit(1, 44 - 32, worldStart, "Calvary");
         }
         //enemy units
         for (int i = 0; i < nArcher_enemy; i++)
         {
-            PlaceUnit(105, 5, worldStart, "Archer", true);
+            PlaceUnit(105-86, 5, worldStart, "Archer", true);
         }
         for (int i = 0; i < nCleric_enemy; i++)
         {
-            PlaceUnit(105, 10, worldStart, "Cleric", true);
+            PlaceUnit(105 - 86, 6, worldStart, "Cleric", true);
         }
         for (int i = 0; i < nSoceress_enemy; i++)
         {
-            PlaceUnit(105, 15, worldStart, "Soceress", true);
+            PlaceUnit(105 - 86, 7, worldStart, "Soceress", true);
         }
         for (int i = 0; i < nThief_enemy; i++)
         {
-            PlaceUnit(108, 5, worldStart, "Thief", true);
+            PlaceUnit(108 - 86, 8, worldStart, "Thief", true);
         }
         for (int i = 0; i < nWarrior_enemy; i++)
         {
-            PlaceUnit(108, 10, worldStart, "Warrior", true);
+            PlaceUnit(108 - 86, 9, worldStart, "Warrior", true);
         }
         for (int i = 0; i < nCalvary_enemy; i++)
         {
-            PlaceUnit(108, 15, worldStart, "Calvary", true);
+            PlaceUnit(108 - 86, 10, worldStart, "Calvary", true);
         }
     }
 
@@ -524,6 +643,16 @@ public class MyGrid : MonoBehaviour
             }
         }
         placeUnits();
+
+        //place basis
+        GameObject mybase1 = Instantiate(myBase, GameObject.Find("Content").transform);
+        mybase1.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
+        2), worldStart.y - tileSize / 2 - (tileSize * (44-34)), 0);
+
+        GameObject enemyBase1 = Instantiate(enemyBase, GameObject.Find("Content").transform);
+        enemyBase1.transform.position = new Vector3(worldStart.x + tileSize / 2 + (tileSize *
+        (108 - 86)), worldStart.y - tileSize / 2 - (tileSize * (11)), 0);
+
     }
 
     public void MoveContentPane(float value)
@@ -735,20 +864,64 @@ public class MyGrid : MonoBehaviour
     public void Marketset()
     {
         print("market set called");
+        print(units.Count);
         var a = units[playerTurn].GetComponent<Unit>();
-        int def = (int)GameObject.Find("Defence").GetComponent<Slider>().value;
-        int att = (int)GameObject.Find("Attack").GetComponent<Slider>().value;
-        if (a.Cash >= def * 10 + att * 10)
+        print(playerTurn);
+        print(a.Cash);
+        print(a.name);
+        if (a.Cash>=10)
         {
-            a.Cash -= def * 10 + att * 10;
-            a.Defense += def;
-            a.Attack += att;
-            GameObject.Find("success").GetComponent<Text>().enabled = true;
+            if (a.name == "warrior(Clone)")
+            {
+                a.Cash -= 10;
+                a.Attack += 2;
+            }
+            if (a.name == "archer(Clone)")
+            {
+                a.Cash -= 10;
+                a.Defense += 1;
+            }
+            if (a.name == "Cleric(Clone)")
+            {
+                a.Cash -= 10;
+                a.Range += 2;
+            }
+            if (a.name == "Thief(Clone)")
+            {
+                a.Cash -= 10;
+                a.Defense += 1;
+            }
+            if (a.name == "Sorceress(Clone)")
+            {
+                a.Cash -= 10;
+                a.Range += 2;
+            }
+            if (a.name == "Calvary(Clone)")
+            {
+                a.Cash -= 10;
+                a.Defense += 1;
+                a.Attack += 1;
+            }
+            pushAnnouncement("Unit Upgraded");
         }
         else
         {
-            GameObject.Find("fail").GetComponent<Text>().enabled = true;
+            pushAnnouncement("Not enough money");
         }
+    }
+
+    public void pushAnnouncement(string announce )
+    {
+        attackStatus = announce;
+        newAnnouncement = true;
+    }
+
+    private void showCircle(Vector3 centerPoint , int diameter)
+    {
+        print("circle drawn");
+        //CircleSprite.GetComponent<Renderer>().transform.position = centerPoint;
+        CircleSprite.GetComponent<Renderer>().transform.position = new Vector2(centerPoint.x, centerPoint.y- 30);
+        CircleSprite.GetComponent<Renderer>().transform.localScale = new Vector3(diameter+12, diameter, 0);
     }
 
 }

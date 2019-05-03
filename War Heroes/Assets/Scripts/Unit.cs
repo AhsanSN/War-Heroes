@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 public class Unit : MonoBehaviour
 {
-
     Animator anim;
     int idleHash;
     int walkHash;
@@ -17,13 +16,12 @@ public class Unit : MonoBehaviour
     int deadHash;
     int runStateHash = Animator.StringToHash("Base Layer.Run");
 
-
-
     // Start is called before the first frame update
     private bool selected=false;
     private bool move = false;
     private bool colliding = false;
     private bool touchedMarket = false;
+    private bool deathStatus = false;
     //public GameObject unit; //Keep in mind that we drag-drop the tile in inspector
     //attributes
     private int health;
@@ -33,8 +31,10 @@ public class Unit : MonoBehaviour
     private int attack;
     private int cash;
     private string title;
+    private bool deadAnnShown = false;
     private Rigidbody2D rb2D; //For selecting the attached rigid body component
-
+    MyGrid grid;
+    private GameObject go;
 
     //int jumpHash = Animator.StringToHash("Jump");
     //int runStateHash = Animator.StringToHash("Base Layer.Run");
@@ -97,9 +97,16 @@ public class Unit : MonoBehaviour
         get { return touchedMarket; }
         set { touchedMarket = value; }
     }
+    public bool DeathStatus
+    {
+        get { return deathStatus; }
+        set { deathStatus = value; }
+    }
 
     void Start()
     {
+        go = GameObject.Find("Grid");
+        grid = go.GetComponent<MyGrid>();
         anim = GetComponent<Animator>();
         anim.SetTrigger(idleHash);
 
@@ -111,7 +118,7 @@ public class Unit : MonoBehaviour
             health= 2;
             defense = 5;
             range = 100;
-            speed = 60;
+            speed = 500;
             attack = 4;
             title = "";
             walkHash = Animator.StringToHash("walk_archer");
@@ -127,7 +134,7 @@ public class Unit : MonoBehaviour
             health = 2;
             defense = 2;
             range = 102;
-            speed = 60;
+            speed = 360;
             attack = 12;
             title = "";
             walkHash = Animator.StringToHash("walk_cleric");
@@ -143,7 +150,7 @@ public class Unit : MonoBehaviour
             health = 2;
             defense = 2;
             range = 102;
-            speed = 60;
+            speed = 500;
             attack = 12;
             title = "";
             walkHash = Animator.StringToHash("walk_warrior");
@@ -160,7 +167,7 @@ public class Unit : MonoBehaviour
             health = 2;
             defense = 2;
             range = 102;
-            speed = 60;
+            speed = 360;
             attack = 12;
             title = "";
             walkHash = Animator.StringToHash("walk_calvary");
@@ -177,7 +184,7 @@ public class Unit : MonoBehaviour
             health = 2;
             defense = 2;
             range = 102;
-            speed = 60;
+            speed = 260;
             attack = 12;
             title = "";
             walkHash = Animator.StringToHash("walk_soceress");
@@ -194,7 +201,7 @@ public class Unit : MonoBehaviour
             health = 2;
             defense = 2;
             range = 102;
-            speed = 60;
+            speed = 400;
             attack = 12;
             title = "";
             walkHash = Animator.StringToHash("walk_thief");
@@ -203,20 +210,23 @@ public class Unit : MonoBehaviour
             defendHash = Animator.StringToHash("defend_thief");
             powerHash = Animator.StringToHash("power_thief");
             deadHash = Animator.StringToHash("dead_thief");
-
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Health <= 0)
+        //move = false;
+        //print("pos" +name+ rb2D.transform.position);
+        if (Health <= 0 && deadAnnShown==false)
         {
-     
-       print(name+ " unit killed");
+            print(name+ " unit killed");
+            grid.pushAnnouncement("Your unit was killed!");
+            deathStatus = true;
             dead_anim();
             //Destroy(this.gameObject);
-            //gameObject.GetComponent<Renderer>().enabled = false;
+            gameObject.GetComponent<Renderer>().enabled = false;
+            deadAnnShown = true;
         }
         
     }
@@ -230,6 +240,7 @@ public class Unit : MonoBehaviour
         if (collision.gameObject.CompareTag("treasure"))
         {
             cash += 10;
+            grid.pushAnnouncement("Collected 10 Cash!");
             print("cash Added");
             Destroy(collision.gameObject);
         }

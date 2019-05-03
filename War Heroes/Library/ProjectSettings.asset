@@ -570,7 +570,7 @@ PlayerSettings:
       daydreamIconForeground: {fileID: 0}
       daydreamIconBackground: {fileID: 0}
   cloudServicesEnabled:
-    Build: 0
+    Build: 1
     Collab: 0
     ErrorHub: 0
     Hub: 0
@@ -594,9 +594,9 @@ PlayerSettings:
   facebookXfbml: 0
   facebookFrictionlessRequests: 1
   apiCompatibilityLevel: 6
-  cloudProjectId: e3f291ef-0e37-41df-9a26-945898f0222a
+  cloudProjectId: 4f144ce0-963e-427f-83a2-929ea5e8d340
   framebufferDepthMemorylessMode: 0
-  projectName: War Heroes (2)
+  projectName: War Heroes (1)
   organizationId: snahmed1998
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
