@@ -1,5 +1,6 @@
 # War Heroes
 
+War Heroes", "A single player strategy game where you build an army and fight against your enemies. Aim is to either finish all your enemies or their base. App available on playstore.","https://github.com/AhsanSN/War-Heroes
 
 <table>
   <tbody>
